@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+      crossorigin="anonymous"
+    />
+    <style>
+      #loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        width: 100vw;
+        height: 60vh;
+        background-color: rgba(255, 255, 255, 0.9);
+      }
+    </style>
+
+    <title>Create Calendar Events</title>
+  </head>
+
+  <body>
+    <div class="form-check">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="cycles"
+        id="cycle0"
+        onclick="handleRadioButtonClick(this);"
+        value="0"
+      />
+      <label class="form-check-label" for="cycle0">
+        <span id="cycleText0">Cycle 0</span>
+      </label>
+    </div>
+    <div class="form-check">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="cycles"
+        id="cycle1"
+        onclick="handleRadioButtonClick(this);"
+        value="1"
+      />
+      <label class="form-check-label" for="cycle1">
+        <span id="cycleText1">Cycle 1</span>
+      </label>
+    </div>
+    <div class="form-check">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="cycles"
+        id="cycle2"
+        onclick="handleRadioButtonClick(this);"
+        value="2"
+      />
+      <label class="form-check-label" for="cycle2">
+        <span id="cycleText2">Cycle 2</span>
+      </label>
+    </div>
+    <div class="form-check">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="cycles"
+        id="cycle3"
+        onclick="handleRadioButtonClick(this);"
+        value="3"
+      />
+      <label class="form-check-label" for="cycle3">
+        <span id="cycleText3">Cycle 3</span>
+      </label>
+    </div>
+    <div class="form-check">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="cycles"
+        id="cycle4"
+        onclick="handleRadioButtonClick(this);"
+        value="4"
+      />
+      <label class="form-check-label" for="cycle4">
+        <span id="cycleText4">Cycle 4</span>
+      </label>
+    </div>
+
+    <button type="button" class="btn btn-primary mt-2" id="createCalendarButton">Create Calendar Items</button>
+    <div id="loading" class="d-none d-flex justify-content-center align-items-center">
+      <div class="spinner-grow spinner-grow-lg text-success" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <div class="mt-3 alert alert-primary d-none" id="result"></div>
+
+    <!-- Modal -->
+    <div class="modal fade bd-example-modal-sm" id="finishedModal" tabindex="-1" aria-labelledby="finishedModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="finishedModalLabel">Click OK to continue...</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <!-- <div class="modal-body">Click OK to continue...</div> -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Optional JavaScript; choose one of the two! -->
+
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      let selectedCycleIndex;
+      let selectedCycle;
+      const globalCycles = [];
+
+      function handleRadioButtonClick(myRadio) {
+        selectedCycleIndex = myRadio.value;
+        selectedCycle = globalCycles[selectedCycleIndex];
+      }
+
+      function getCycles() {
+        // If the current date is within a cycle, assume that's the cycle you care about.
+        // If the current date is between cycles, assume you care about the upcoming cycle.
+        // This function will return an array of objects, starting with the cycle before
+        // the one you "care" about, the one you care about, plus the following three cycles.
+        // The output should have 5 cycle objects in all.
+        // This code assumes that the spring cycle runs from Feb (2) through May (5), and
+        // the fall cycle runs from Sep (9) through Dec (12).
+
+        const today = new Date();
+        const currentMonth = today.getMonth() + 1;
+        const currentYear = today.getFullYear();
+        cycles = [];
+
+        if (inRange(currentMonth, 1, 5)) {
+          currentCycle = {
+            season: "Spring",
+            year: currentYear,
+          };
+        } else if (inRange(currentMonth, 6, 12)) {
+          currentCycle = {
+            season: "Fall",
+            year: currentYear,
+          };
+        }
+
+        // Now add the previous cycle:
+        if (currentCycle.season === "Fall") {
+          previousCycle = {
+            season: "Spring",
+            year: currentYear,
+          };
+        } else {
+          previousCycle = {
+            season: "Fall",
+            year: currentYear - 1,
+          };
+        }
+        console.log("before pushing. cycles:", cycles);
+        console.log("pushing previous cycle:", previousCycle);
+        cycles.push(previousCycle);
+        console.log("cycles: ", cycles);
+        console.log("pushing current cycle:", currentCycle);
+        cycles.push(currentCycle);
+        console.log("cycles: ", cycles);
+
+
+        // Now add the three next cycles:
+        // STEVE: The problem was here. Stupid "=" vs "==="
+        if ((currentCycle.season === "Fall")) {
+          cycles.push({
+            season: "Spring",
+            year: currentYear + 1,
+          });
+          cycles.push({
+            season: "Fall",
+            year: currentYear + 1,
+          });
+          cycles.push({
+            season: "Spring",
+            year: currentYear + 2,
+          });
+        } else {
+          // currentSeason.cycle must be "Spring" if it ain't Fall.
+          cycles.push({
+            season: "Fall",
+            year: currentYear,
+          });
+          cycles.push({
+            season: "Spring",
+            year: currentYear + 1,
+          });
+          cycles.push({
+            season: "Fall",
+            year: currentYear + 1,
+          });
+        }
+        return cycles;
+      }
+
+      function test() {
+        let testCycles = getCycles();
+        console.log(testCycles);
+      }
+
+      function inRange(x, min, max) {
+        return (x - min) * (x - max) <= 0;
+      }
+
+      function setCycles() {
+        let localCycles = getCycles();
+        localCycles.forEach(function (cycle, i) {
+          let id = "cycleText" + i;
+          let item = document.getElementById(id);
+          item.innerText = cycle.season + " " + cycle.year;
+        });
+
+        // Set the selected cycle and select the default cycle
+        // (the current or upcoming cycle)
+        selectedCycleIndex = 1;
+        selectedCycle = localCycles[1];
+        document.getElementById("cycle1").checked = true;
+      }
+
+      var resultPrompt = "Please wait. This takes some time...";
+
+      function resetResult() {
+        const result = document.getElementById("result");
+        result.innerHTML = "";
+        result.classList.add("d-none");
+      }
+
+      function getResultElement() {
+        const elem = document.getElementById("result");
+        if (elem.innerHTML === resultPrompt) {
+          elem.innerHTML = "";
+        }
+        return elem;
+      }
+
+      function updateResult(calType, count) {
+        const content = `${calType}: ${count} ${count === 1 ? "event" : "events"} added.`;
+        const elem = getResultElement();
+        elem.innerHTML = elem.innerHTML + `<div>${content}</div>`;
+      }
+
+      function handleError(error) {
+        const elem = getResultElement();
+        elem.innerHTML = elem.innerHTML + `<div>${error.message}</div>`;
+        loadingEnd();
+      }
+
+      function createCalendarItems() {
+        loadingStart();
+        google.script.run
+          .withFailureHandler((error) => {
+            handleError(error);
+          })
+          .withSuccessHandler((eventCount) => {
+            updateResult("regular", eventCount);
+            loadingEnd();
+          })
+          .createCalendarEvents("regular", selectedCycle);
+      }
+
+      // function createCalendarItems() {
+      //   var calType;
+
+      //   loadingStart();
+      //   google.script.run
+      //     .withFailureHandler((error) => {
+      //       handleError(error);
+      //     })
+      //     .withSuccessHandler((eventCount) => {
+      //       updateResult("regular", eventCount);
+      //       google.script.run
+      //         .withFailureHandler((error) => {
+      //           handleError(error);
+      //         })
+      //         .withSuccessHandler((eventCount) => {
+      //           updateResult("optional", eventCount);
+      //           google.script.run
+      //             .withFailureHandler((error) => {
+      //               handleError(error);
+      //             })
+      //             .withSuccessHandler((eventCount) => {
+      //               updateResult("required", eventCount);
+      //               loadingEnd();
+      //             })
+      //             .createCalendarEvents("required", selectedCycle);
+      //         })
+      //         .createCalendarEvents("optional", selectedCycle);
+      //     })
+      //     .createCalendarEvents("regular", selectedCycle);
+      // }
+
+      function loadingStart() {
+        document.getElementById("loading").classList.remove("d-none");
+
+        const result = document.getElementById("result");
+        result.innerHTML = resultPrompt;
+        result.classList.remove("d-none");
+      }
+
+      function loadingEnd() {
+        var myModal = new bootstrap.Modal(document.getElementById("finishedModal"), {
+          keyboard: true,
+        });
+
+        setTimeout(function () {
+          document.getElementById("loading").classList.add("d-none");
+          myModal.show();
+        }, 3000);
+      }
+
+      createCalendarButton.addEventListener("click", createCalendarItems);
+      document.addEventListener("DOMContentLoaded", setCycles);
+      var myModalEl = document.getElementById("finishedModal");
+      myModalEl.addEventListener("hidden.bs.modal", function (event) {
+        resetResult();
+      });
+    </script>
+  </body>
+</html>

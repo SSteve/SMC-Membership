@@ -1,0 +1,72 @@
+<div class="edit-singer-form container-lg pt-3">
+  <div class="row g-1 m-1">
+    <div class="col-1">
+      <input type="number" class="form-control" id="singerId" placeholder="ID" readonly />
+    </div>
+    <div class="col-3">
+      <input type="text" class="form-control" id="firstName" placeholder="first name" />
+    </div>
+    <div class="col-3">
+      <input type="text" class="form-control" id="lastName" placeholder="last name" />
+    </div>
+    <div class="col-5">
+      <input type="email" class="form-control" id="email" placeholder="email" required />
+    </div>
+  </div>
+  <div class="row g-1 m-1">
+    <div class="col-12">
+      <input type="text" class="form-control" id="address" placeholder="street address" />
+    </div>
+  </div>
+  <div class="row g-1 m-1">
+    <div class="col-5">
+      <input type="text" class="form-control" id="city" placeholder="city" />
+    </div>
+    <div class="col-3">
+      <input type="text" id="state" class="form-control" placeholder="state" />
+    </div>
+    <div class="col-4">
+      <input type="text" class="form-control" id="zipCode" placeholder="zip code" />
+    </div>
+  </div>
+  <div class="row g-1 m-1">
+    <div class="col-3">
+      <input type="tel" class="form-control" id="homePhone" placeholder="home phone" />
+    </div>
+    <div class="col-3">
+      <input type="tel" class="form-control" id="mobilePhone" placeholder="mobile phone" />
+    </div>
+    <div class="col-3">
+      <select id="voicePart" class="form-select">
+        <option selected>Voice Part...</option>
+        <option>Soprano I</option>
+        <option>Soprano II</option>
+        <option>Alto I</option>
+        <option>Alto II</option>
+        <option>Tenor I</option>
+        <option>Tenor II</option>
+        <option>Baritone</option>
+        <option>Bass</option>
+        <option>Conductor</option>
+        <option>Accompanist</option>
+        <option></option>
+      </select>
+    </div>
+    <div class="col-3">
+      <select id="active" class="form-select required">
+        <option selected>Active</option>
+        <option>Rehearsal only</option>
+        <option>Observe</option>
+        <option>Inactive</option>
+        <option>Gone</option>
+      </select>
+    </div>
+  </div>
+  <div class="row g-1 m-1">
+    <div class="col-12">
+      <button class="btn btn-primary" id="save-changes">Save</button>
+      <button class="btn btn-primary" id="cancel-changes">Cancel</button>
+    </div>
+    <div class="alert alert-success mt-3 d-none" role="alert" id="edit-success-alert">Changes saved!</div>
+  </div>
+</div>

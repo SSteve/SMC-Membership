@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <style>
+      .nav-link {
+        cursor: pointer;
+      }
+
+      #loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(255, 255, 255, 0.9);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container-fluid">
+      <nav id="navigation" class="mb-3">
+        <ul class="nav nav-tabs main-nav">
+          <li class="nav-item">
+            <div class="nav-link active" id="search-link">Find Singer</div>
+          </li>
+          <li class="nav-item">
+            <div class="nav-link" id="add-singer-link">Add Singer</div>
+          </li>
+        </ul>
+      </nav>
+      <div id="app"></div>
+    </div>
+
+    <div id="loading" class="d-none d-flex justify-content-center align-items-center">
+      <div class="spinner-grow spinner-grow-lg text-success" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
+    <script>
+      // Contain the data from the spreadsheet, locally.
+      var data;
+      var loadedView = "";
+      // Element IDs on the edit and add views,
+      // and the corresponding field number in the data array.
+      var fields = [{
+          id: "singerId",
+          isNumber: true,
+        },
+        {
+          id: "firstName",
+          isNumber: false,
+        },
+        {
+          id: "lastName",
+          isNumber: false,
+        },
+        {
+          id: "fullName",
+          isNumber: false,
+        },
+        {
+          id: "voicePart",
+          isNumber: false,
+        },
+        {
+          id: "voicePartValue",
+          isNumber: true,
+        },
+        {
+          id: "active",
+          isNumber: false,
+        },
+        {
+          id: "address",
+          isNumber: false,
+        },
+        {
+          id: "city",
+          isNumber: false,
+        },
+        {
+          id: "state",
+          isNumber: false,
+        },
+        {
+          id: "zipCode",
+          isNumber: true,
+        },
+        {
+          id: "email",
+          isNumber: false,
+        },
+        {
+          id: "homePhone",
+          isNumber: true,
+        },
+        {
+          id: "mobilePhone",
+          isNumber: true,
+        },
+      ];
+
+      function loadingStart() {
+        document.getElementById("loading").classList.remove("d-none");
+      }
+
+      function loadingEnd() {
+        document.getElementById("loading").classList.add("d-none");
+      }
+
+      function activeTabChange(e) {
+        var navLinks = document.querySelectorAll(".main-nav .nav-link");
+        navLinks.forEach(function(linkElement) {
+          linkElement.classList.remove("active");
+        });
+        e.target.classList.add("active");
+      }
+
+      function loadView(options) {
+        loadingStart();
+        loadedView = options.viewName;
+        var id = typeof options.id === "undefined" ? "app" : options.id;
+        var cb = typeof options.callback === "undefined" ? function() {} : options.callback;
+        google.script.run
+          .withSuccessHandler(function(html) {
+            document.getElementById(id).innerHTML = html;
+            // Run the callback function, if it exists.
+            loadingEnd();
+            typeof options.params === "undefined" ? cb() : cb(options.params);
+          })[options.func]();
+      }
+
+      function setDataForSearch() {
+        google.script.run
+          .withSuccessHandler(function(dataReturned) {
+            // Make a shallow copy of the array; otherwise, you get a reference
+            // to the array, which will be a problem.
+            // Can also use dataReturned.slice() method instead.
+
+            data = [...dataReturned];
+            document.getElementById("searchInput").focus();
+          })
+          .getDataForSearch();
+      }
+
+      function loadSearchView() {
+        loadView({
+          func: "loadSearchView",
+          viewName: "search",
+          callback: setDataForSearch,
+        });
+      }
+
+      function search() {
+        var searchInputBox = document.getElementById("searchInput");
+        var searchInput = searchInputBox.value.toString().trim();
+        // Split based on spaces.
+        var searchWords = searchInput.split(/\s+/);
+        // Search for the entered value, case-insensitive. Look in either firstname or lastname column.
+        var searchColumns = [1, 2, 4, 11];
+        var results =
+          searchInput === "" ? [] :
+          data.filter(function(r) {
+            return searchWords.every(function(word) {
+              return searchColumns.some(function(colIndex) {
+                return r[colIndex].search(new RegExp(word, "i")) !== -1;
+              });
+            });
+          });
+        var searchResultsBox = document.getElementById("searchResults");
+        var template = document.getElementById("rowTemplate").content;
+        searchResultsBox.innerHTML = "";
+
+        // Display record count at the end of the search bar. Use empty string if there are no records.
+        var recordCount = results.length;
+        document.getElementById("searchCounter").textContent = recordCount > 0 ? "Singers: " + results.length : "";
+
+        // Add each row in the results to the grid.
+        results.forEach(function(r) {
+          var tr = template.cloneNode(true);
+          var singerIdCol = tr.querySelector(".singerId");
+          var firstNameCol = tr.querySelector(".firstName");
+          var lastNameCol = tr.querySelector(".lastName");
+          var sectionCol = tr.querySelector(".section");
+          var emailCol = tr.querySelector(".email");
+          var deleteButton = tr.querySelector(".delete-button");
+          var editButton = tr.querySelector(".edit-button");
+
+          singerIdCol.textContent = r[0];
+          // Set data item on Delete button, so can delete the right singer.
+          deleteButton.dataset.singerId = r[0];
+          deleteButton.dataset.singerEmail = r[11];
+          editButton.dataset.singerId = r[0];
+          firstNameCol.textContent = r[1];
+          lastNameCol.textContent = r[2];
+          sectionCol.textContent = r[4];
+          emailCol.textContent = r[11];
+          searchResultsBox.appendChild(tr);
+        });
+      }
+
+      function clearForm() {
+        // Clear all the fields on the edit or add form.
+        fields.forEach(function(field) {
+          let elem = document.getElementById(field.id);
+          if (elem !== null) {
+            elem.value = "";
+          }
+        });
+        // Figure out where to set the focus. If there's no ID field
+        // on the form, set focus to FirstName instaed.
+        elem = document.getElementById(fields[0].id);
+        if (elem === null) {
+          elem = document.getElementById(fields[1].id);
+        }
+        elem.focus();
+      }
+
+      function copyFormDataToArray() {
+        const singerData = [];
+        fields.forEach(function(field) {
+          let elem = document.getElementById(field.id);
+          if (elem === null) {
+            singerData.push("");
+          } else {
+            let data = elem.value;
+            if (data != "" && field.isNumber) {
+              data = parseInt(data);
+            }
+            singerData.push(data);
+          }
+        });
+        return singerData;
+      }
+
+      function editSinger() {
+        // Save changes to the spreadsheet, and then update the array in memory.
+        // First, pull the data off the form and put it into an array.
+        loadingStart();
+        const singerData = copyFormDataToArray();
+
+        // singerData now contains the data from the form.
+        // singerData[0] contains the singer ID.
+        // To update the in-memory array, need to find
+        // the correct row in the array, and copy in the data.
+        const singerId = singerData[0];
+        let singerIndex = data.findIndex(function(row) {
+          return row[0] === singerId;
+        });
+
+        // Loop through each field in the field map.
+        // If the original data doesn't match the new data,
+        // copy the new data into the corresponding column
+        // in the original data row.
+        fields.forEach(function(field, index) {
+          var oldData = data[singerIndex][index];
+          var newData = singerData[index];
+          if (oldData != newData) {
+            data[singerIndex][index] = singerData[index];
+          }
+        });
+
+        // Data[singerIndex] contains the current data for the selected singer.
+        // Now write it out to the spreadsheet. Display success alert after writing.
+        const alertElem = document.getElementById("edit-success-alert");
+        google.script.run
+          .withSuccessHandler(function(results) {
+            loadingEnd();
+            displaySuccessAlert(alertElem, 3000);
+          })
+          .saveChangesById(data[singerIndex]);
+      }
+
+      function displaySuccessAlert(alertElem, timeOut) {
+        alertElem.classList.remove("d-none");
+        setTimeout(function() {
+          alertElem.classList.add("d-none");
+        }, timeOut);
+      }
+
+      function addSinger() {
+        // Loop through each field in the field map.
+        // Copy data into the data array.
+        loadingStart();
+        var singerData = copyFormDataToArray();
+        // Nothing in firstname or lastname? Just get out.
+        if (singerData[1] === "" || singerData[2] === "") {
+          return;
+        }
+        const alertElem = document.getElementById("add-success-alert");
+        google.script.run
+          .withSuccessHandler(function() {
+            loadingEnd();
+            displaySuccessAlert(alertElem, 3000);
+            clearForm();
+          })
+          .addNewSinger(singerData);
+      }
+
+      function getRowCount() {
+        // How many rows are currently displayed in the grid?
+        return (grid = document.getElementById("searchResults").children.length);
+      }
+
+      function deleteSinger(e) {
+        loadingStart();
+        var singerId = e.target.dataset.singerId;
+        var singerEmail = e.target.dataset.singerEmail;
+        var inputBox = document.getElementById("searchInput");
+        google.script.run
+          .withSuccessHandler(function() {
+            // Delete the current row from the grid.
+            e.target.closest(".result-box").remove();
+            // If there aren't any rows showing in the grid,
+            // clear out the input box.
+            if (getRowCount() == 0) {
+              inputBox.value = "";
+            }
+            // Set focus back to the input box.
+            loadingEnd();
+            inputBox.focus();
+            data = data.filter((r) => r[0] != singerId);
+          })
+          .deleteById(singerId, singerEmail);
+      }
+
+      function displayDeleteConfirmation(e) {
+        var ctl = e.target;
+        if (ctl.textContent === "Cancel") {
+          ctl.previousElementSibling.classList.add("d-none");
+          ctl.textContent = "Delete";
+        } else {
+          ctl.previousElementSibling.classList.remove("d-none");
+          ctl.textContent = "Cancel";
+        }
+      }
+
+      function getSingerById(singerId) {
+        var singerData = data.filter((r) => r[0] === singerId);
+        return singerData[0];
+      }
+
+      function afterAddViewLoads() {
+        document.getElementById("firstName").focus();
+      }
+
+      function afterEditViewLoads(params) {
+        // Receives SingerId in the params object.
+        var singerData = getSingerById(parseInt(params.singerId));
+
+        // Copy all the data into the appropriate elements.
+        fields.forEach(function(field, index) {
+          var elem = document.getElementById(field.id);
+          if (elem != null) {
+            elem.value = singerData[index].toString();
+          }
+        });
+        document.getElementById("singerId").focus();
+      }
+
+      function loadAddSingerView() {
+        loadView({
+          func: "loadAddSingerView",
+          viewName: "add",
+          callback: afterAddViewLoads,
+        });
+      }
+
+      function loadEditSingerView(e) {
+        loadView({
+          func: "loadEditSingerView",
+          viewName: "edit",
+          callback: afterEditViewLoads,
+          params: {
+            singerId: e.target.dataset.singerId
+          },
+        });
+      }
+
+      function inputEventHandler(e) {
+        if (e.target.matches("#searchInput")) {
+          search();
+        }
+      }
+
+      function clickEventHandler(e) {
+        if (e.target.matches(".delete-button")) {
+          deleteSinger(e);
+        }
+        if (e.target.matches(".before-delete-button")) {
+          displayDeleteConfirmation(e);
+        }
+        if (e.target.matches(".edit-button")) {
+          loadEditSingerView(e);
+        }
+        if (e.target.matches("#save-changes")) {
+          editSinger();
+        }
+        if (e.target.matches("#cancel-changes")) {
+          loadSearchView();
+        }
+        if (e.target.matches("#add-singer")) {
+          addSinger();
+        }
+      }
+
+      function navClickEventHandler(e) {
+        if (e.target.matches(".nav-link")) {
+          console.log("in here");
+          activeTabChange(e);
+        }
+      }
+
+      function handleKeys(e) {
+        if (e.key === "Escape" && loadedView === "search") {
+          // Clear out the text box and the grid.
+          var ctl = document.getElementById("searchInput");
+          ctl.value = "";
+          ctl.focus();
+          document.getElementById("searchResults").innerHTML = "";
+        }
+        if (e.target.matches("#searchInput")) {
+          if (e.key === "Enter") {
+            document.getElementById("edit-button").click();
+          }
+        }
+      }
+
+      document.getElementById("search-link").addEventListener("click", loadSearchView);
+      document.getElementById("add-singer-link").addEventListener("click", loadAddSingerView);
+      document.getElementById("app").addEventListener("click", clickEventHandler);
+      document.getElementById("app").addEventListener("input", inputEventHandler);
+      document.getElementById("navigation").addEventListener("click", navClickEventHandler);
+      document.addEventListener("keyup", handleKeys);
+      document.addEventListener("DOMContentLoaded", loadSearchView());
+    </script>
+  </body>
+
+</html>

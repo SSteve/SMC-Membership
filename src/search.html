@@ -1,0 +1,43 @@
+  <div class="container-lg pt-3">
+    <div class="mb-3">
+      <div class="input-group mb-3">
+              <input type="text" class="form-control" id="searchInput" placeholder="search in one or more columns..." />
+    <span class="input-group-text" id="searchCounter"></span>
+  </div>
+
+    </div>
+
+    <table class="table table-sm table-hover">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">First Name</th>
+          <th scope="col">Last Name</th>
+          <th scope="col">Section</th>
+          <th scope="col">Email</th>
+          <th scope="col"></th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody id="searchResults" class="align-middle"></tbody>
+    </table>
+  </div>
+
+  <template id="rowTemplate">
+    <tr class="result-box">
+      <th class="singerId" scope="row"></th>
+      <td class="firstName"></td>
+      <td class="lastName"></td>
+      <td class="section"></td>
+      <td class="email"></td>
+      <td>
+    <div class="btn-toolbar" role="toolbar">
+          <button type="button" id="edit-button" class="btn-sm btn-outline-dark me-1 edit-button">Edit</button>
+          <button type="button" class="btn-sm btn-danger delete-button d-none">Confirm</button>
+          <button type="button" class="btn-sm btn-outline-dark before-delete-button">Delete</button>  
+
+        </div>
+    </div>
+      </td>
+    </tr>
+  </template>

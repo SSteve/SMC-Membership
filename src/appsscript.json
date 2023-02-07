@@ -1,0 +1,25 @@
+{
+  "timeZone": "America/Los_Angeles",
+  "dependencies": {
+    "enabledAdvancedServices": [{
+      "userSymbol": "AdminDirectory",
+      "serviceId": "admin",
+      "version": "directory_v1"
+    }, {
+      "userSymbol": "AdminGroupsSettings",
+      "serviceId": "groupssettings",
+      "version": "v1"
+    }]
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "sheets": {
+    "macros": [{
+      "menuName": "Rosters",
+      "functionName": "Rosters"
+    }, {
+      "menuName": "Test",
+      "functionName": "Test"
+    }]
+  }
+}
